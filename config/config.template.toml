@@ -1,0 +1,33 @@
+[server]
+name = "kanboard"
+host = "127.0.0.1"
+port = "9999"
+timeout = 500      # seconds
+
+[log]
+path = "./logs/"
+maxSize = 500    # MB
+maxBackups = 10
+maxAge = 30
+compress = true
+
+[db]
+dsn = "root:root@tcp(127.0.0.1:3306)/kanboard?charset=utf8mb4&parseTime=True&loc=Local"
+maxIdleConns = 10
+maxOpenConns = 10
+connMaxIdleTime = 1                                                                     # hours
+connMaxLifetime = 1                                                                     # hours
+
+[redis]
+addr = "127.0.0.1:6379"
+password = ""
+db = 0
+
+[jwt]
+secret = "kanboard.secret"
+kanboardTokenExpiration = 30 # days
+adminTokenExpiration = 4     # hours
+
+[file]
+path = "./files/"
+static = "resources"

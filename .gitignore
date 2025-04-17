@@ -1,0 +1,7 @@
+tmp/
+build/
+build-win/
+files/
+logs/
+*.log
+config/config.toml
