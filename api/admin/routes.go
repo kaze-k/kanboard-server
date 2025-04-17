@@ -46,7 +46,7 @@ func InitApi(router *gin.RouterGroup) {
 
 		user.POST("/createUser", userHandler.CreateUser)
 		user.GET("/getUsers", userHandler.GetUsers)
-		user.POST("/getUser/", userHandler.GetUser)
+		user.POST("/getUser", userHandler.GetUser)
 		user.PUT("/updateUser", userHandler.UpdateUser)
 		user.POST("/searchUser", userHandler.SearchUser)
 		user.DELETE("/deleteUser", userHandler.DeleteUser)
