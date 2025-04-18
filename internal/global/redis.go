@@ -157,6 +157,19 @@ func (r *RedisClient) HGet(namespace string, key string, field string) string {
 	return result
 }
 
+func (r *RedisClient) HGetBykey(key string, field string) string {
+	result, getErr := r.client.HGet(r.Ctx, key, field).Result()
+	if getErr != nil {
+		Logger.Error(getErr)
+	}
+
+	if constant.EnvConfig.Mode == "debug" {
+		Logger.Infow("redis HGet", "key", key, "value", result)
+	}
+
+	return result
+}
+
 func (r *RedisClient) HGetAll(namespace string, key string) map[string]string {
 	getKey := fmt.Sprintf("%s/%s", namespace, key)
 	result, err := r.client.HGetAll(r.Ctx, getKey).Result()
@@ -282,6 +295,14 @@ func (r *RedisClient) Subscribe(channel string) *redis.PubSub {
 
 func (r *RedisClient) Scan(namespace string, match string, count int64) *redis.ScanIterator {
 	getMatch := fmt.Sprintf("%s/%s", namespace, match)
+	if constant.EnvConfig.Mode == "debug" {
+		Logger.Infow("redis Scan", "match", getMatch, "count", count)
+	}
+	return r.client.Scan(r.Ctx, 0, getMatch, count).Iterator()
+}
+
+func (r *RedisClient) ScanByMatch(match string, count int64) *redis.ScanIterator {
+	getMatch := fmt.Sprintf("*/%s", match)
 	if constant.EnvConfig.Mode == "debug" {
 		Logger.Infow("redis Scan", "match", getMatch, "count", count)
 	}

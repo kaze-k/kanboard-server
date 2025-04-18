@@ -266,8 +266,16 @@ func (m *MessageRepo) DeleteMsg(msgID string, namespace string) error {
 	return m.redis.Delete(namespace, msgID)
 }
 
-func (m *MessageRepo) GetMsgField(msgID string, field string, namespace string) string {
-	return m.redis.HGet(namespace, msgID, field)
+func (m *MessageRepo) GetMsgField(msgID string, field string) (string, []string) {
+	iter := m.redis.ScanByMatch(msgID, 1)
+	for iter.Next(m.redis.Ctx) {
+		namespace := strings.Split(iter.Val(), "/")
+		return m.redis.HGetBykey(iter.Val(), field), namespace
+	}
+	if iter.Err() == nil {
+		return "", nil
+	}
+	return "", nil
 }
 
 func (m *MessageRepo) RemoveAdminMsg(msgID string, userID string) error {
@@ -275,6 +283,16 @@ func (m *MessageRepo) RemoveAdminMsg(msgID string, userID string) error {
 		return err
 	}
 	if err := m.redis.SRem(constant.ADMIN_MESSAGE_READED, userID, msgID); err != nil {
+		return err
+	}
+	return nil
+}
+
+func (m *MessageRepo) RemoveKanboardMsg(msgID string, userID string) error {
+	if err := m.redis.SRem(constant.KANBOARD_MESSAGE_UNREADED, userID, msgID); err != nil {
+		return err
+	}
+	if err := m.redis.SRem(constant.KANBOARD_MESSAGE_READED, userID, msgID); err != nil {
 		return err
 	}
 	return nil

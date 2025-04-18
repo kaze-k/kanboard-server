@@ -2,6 +2,8 @@ package services
 
 import (
 	"encoding/json"
+	"errors"
+	"fmt"
 	"strconv"
 	"time"
 
@@ -97,22 +99,42 @@ func (m *MessageService) MarkReadMsg(userID uint, msgID string) error {
 
 func (m *MessageService) DeleteMsg(msgID string) error {
 	userIDs := []uint{}
-	result := m.msgRepo.GetMsgField(msgID, "to", constant.ADMIN_NOTIFICATION)
+	result, namespace := m.msgRepo.GetMsgField(msgID, "to")
+	if result == "" || namespace == nil {
+		return errors.New("message not found")
+	}
 	if err := json.Unmarshal([]byte(result), &userIDs); err != nil {
 		return err
 	}
 
-	if err := m.msgRepo.DeleteMsg(msgID, constant.ADMIN_NOTIFICATION); err != nil {
-		return err
-	}
-
-	for _, userID := range userIDs {
-		if err := m.msgRepo.RemoveAdminMsg(msgID, strconv.Itoa(int(userID))); err != nil {
+	if len(namespace) == 2 {
+		if err := m.msgRepo.DeleteMsg(msgID, constant.ADMIN_NOTIFICATION); err != nil {
 			return err
 		}
 
-		if err := m.msgRepo.PublishMsg("", userID, constant.ADMIN_MESSAGE_CHANNEL); err != nil {
+		for _, userID := range userIDs {
+			if err := m.msgRepo.RemoveAdminMsg(msgID, strconv.Itoa(int(userID))); err != nil {
+				return err
+			}
+
+			if err := m.msgRepo.PublishMsg("", userID, constant.ADMIN_MESSAGE_CHANNEL); err != nil {
+				return err
+			}
+		}
+	} else {
+		prefix := fmt.Sprintf("%s/%s", namespace[0], namespace[1])
+		if err := m.msgRepo.DeleteMsg(msgID, prefix); err != nil {
 			return err
+		}
+
+		for _, userID := range userIDs {
+			if err := m.msgRepo.RemoveKanboardMsg(msgID, strconv.Itoa(int(userID))); err != nil {
+				return err
+			}
+
+			if err := m.msgRepo.PublishMsg(constant.UNREAD_MESSAGE, userID, constant.KANBOARD_MESSAGE_CHANNEL); err != nil {
+				return err
+			}
 		}
 	}
 

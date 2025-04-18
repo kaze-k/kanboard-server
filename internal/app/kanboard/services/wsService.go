@@ -70,6 +70,11 @@ func (w *WsService) ListenAndPush(conn *websocket.Conn, userID uint) {
 				Type:        constant.NEW_TASK_STATUS,
 				UnReadCount: len(data),
 			}
+		} else if msg.Payload == constant.UNREAD_MESSAGE {
+			json = common.MsgRsp{
+				Type:        constant.UNREAD_MESSAGE,
+				UnReadCount: len(data),
+			}
 		} else {
 			json = common.MsgRsp{
 				Type:        constant.NEW_MESSAGE,
