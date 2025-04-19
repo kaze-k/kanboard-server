@@ -24,6 +24,7 @@ build-win:
 
 clean:
 	rm -rf $(BUILD_DIR)
+	rm -rf ${BUILD_WIN_DIR}
 
 run:
 	./$(BUILD_DIR)/$(APP_NAME)

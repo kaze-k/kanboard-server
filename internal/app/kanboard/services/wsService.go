@@ -42,6 +42,13 @@ func (w *WsService) PushUnReadMsg(conn *websocket.Conn, userID uint) {
 	conn.WriteJSON(json)
 }
 
+func (w *WsService) UpdateUser(conn *websocket.Conn, userID uint) {
+	json := common.MsgRsp{
+		Type: constant.UPDATE_USER,
+	}
+	conn.WriteJSON(json)
+}
+
 func (w *WsService) ListenAndPush(conn *websocket.Conn, userID uint) {
 	pubsub := w.msgRepo.SubscribeMsg(userID, constant.KANBOARD_MESSAGE_CHANNEL)
 	defer pubsub.Close()
@@ -111,6 +118,9 @@ func (w *WsService) HandleWebsocket(ctx *gin.Context, userID uint) {
 	defer w.RemoveClient(conn, userID)
 
 	w.AddClient(conn, userID)
+
+	// 上线推送用户信息
+	w.UpdateUser(conn, userID)
 
 	// 上线推送未读消息
 	w.PushUnReadMsg(conn, userID)
